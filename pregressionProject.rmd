@@ -1,0 +1,92 @@
+---
+title: "Regression Project"
+output: pdf_document
+date: "January 17, 2015"
+---
+## Executive summary
+In this report data gathered by Moto Trends is explored and analyzed in order to determine the relationship between a set of variables and miles per gallon of automobiles. In particlular, the following two issues will be addressed:
+
+1. “Is an automatic or manual transmission better for MPG”
+2. "Quantify the MPG difference between automatic and manual transmissions"
+
+## Take and process data 
+```{r}
+data(mtcars)
+mtcars$am <- factor(mtcars$am, labels = c("automatic", "manual"))
+mtcars$cyl <- factor(mtcars$cyl)
+mtcars$vs <- factor(mtcars$vs)
+mtcars$gear <- factor(mtcars$gear)
+mtcars$carb <- factor(mtcars$carb)
+```
+
+## Exploratory analysis
+A boxplot(Figure 1) shows the difference between automatic and manual in terms of MPG, manual transmission produces more MPG than automatic transimission. A pairwise graph (Firgure 2) shows what other variables may be of interest. 
+
+## Model Selection
+
+### Basic model using tramsmission as predictors
+The baisc model only uses tramsimission as predictors. So a significant relationship does exist with a p-value < 0.001 when other factors dosen't be considered. Vehicles with a manual transmission got on average 7.245 more miles per gallon.
+
+```{r}
+basicModel <- lm(mpg ~ am, data = mtcars)
+```
+
+A Two Sample t-test was conducted between the different transmission types. The p-value is 0.001374 and difference in means is not equal to 0, the mean in group manual is 24.39231 and the mean in group automatic is 17.14737,  it shows that manual transmission has significantly more MPG than automatic.
+```{r}
+t_test <- t.test(mpg ~ am, data = mtcars)
+```
+### Stepwise-selected model
+The step function is used to produces list of the best predictors.In this case, the stepwise model process shows the most significant predictors are wt,qsec,and am. The result is shown in Figure3. The Figure 4 shows mpg comparision with respect to wt and qsec.
+
+### Compare basic model with stepwise-selected model
+Compared with basic model which only use tramsmission type as predictor, p-value of stepwise-selected model is  1.688435e-08, so, the predictors(wt, qsec)are added into model are significant to improving the model's accuracy. 
+```{r}
+compare <- anova(basicModel, stepwiseModel)
+compare$Pr
+```
+
+## Residuals analysis
+Figure4 also shows the residuals for the StepWise-selected model. The Residuals vs Fitted plot indicates that this regression model is well fit because no pattern between the residuals and fitted values. The points line up as expected meaning in the Normal Q-Q plot, indicating that the distribtion is normal and the predictions are accurate. In the Scale-Location plot and the Residuals vs Leverage plots, the points are not too far from the center shows no point had too much leverage. 
+
+
+## Conclusion
+The transimission type has a significant effect on fuel efficiency, manual transmission produces more miles per gallon than automatic transmission does. Moreover, weight,and qsec also have influential effect on fuel efficiency.
+
+## Appendix
+
+### Figure1. Boxplox for MPG vs Transmission
+```{r}
+boxplot(mpg~am, data = mtcars, main = "MPG vs Transmission",
+        xlab = "Transmission Type", ylab = "MPG",
+        names = c("Automatic", "Manual"),
+        col = c("lightblue", "pink"))
+```
+
+### Figure2. Pairwise graph of mtcars
+```{r}
+plot <- pairs(mtcars, panel = panel.smooth, main ="Pairwise plot of mtcars data")
+```
+
+### Figure3. StepWise-selected model 
+```{r}
+stepwiseModel <- step(lm(mpg ~ ., data = mtcars), trace = 0)
+summary(stepwiseModel)$coef
+stepwiseModel$anova
+
+par(mfrow=c(2,2))
+plot(stepwiseModel)
+```
+
+### Figure4: MPG vs Weight, MPG vs qsec(1/4 mile time).
+```{r}
+plot(mpg ~ wt, mtcars, col = am, xlab = 'Weight', ylab = "mpg")
+abline(lm(mpg ~ wt, mtcars))
+legend('topright', lty = c(1,1), col = 1:2, legend = c('Automatic', 'Manual'))
+```
+ 
+```{r}
+plot(mpg ~ qsec, mtcars, col = am, xlab = "qsec(1/4 mile time)", ylab = "mpg")
+abline(lm(mpg ~ qsec, mtcars))
+legend('topright', lty = c(1,1), col = 1:2, legend = c('Automatic', 'Manual'))
+```
+
